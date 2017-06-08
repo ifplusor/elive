@@ -131,9 +131,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="AC3AudioFileServerMediaSubsession.cpp" />
     <ClCompile Include="AC3AudioRTPSink.cpp" />
     <ClCompile Include="AC3AudioRTPSource.cpp" />

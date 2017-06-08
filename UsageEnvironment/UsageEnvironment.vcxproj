@@ -131,9 +131,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="HashTable.cpp" />
     <ClCompile Include="strDup.cpp" />
     <ClCompile Include="UsageEnvironment.cpp" />

@@ -130,9 +130,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="GroupEId.cpp" />
     <ClCompile Include="Groupsock.cpp" />
     <ClCompile Include="GroupsockHelper.cpp" />

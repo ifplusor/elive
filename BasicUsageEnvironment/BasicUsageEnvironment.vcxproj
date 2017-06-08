@@ -131,9 +131,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="BasicHashTable.cpp" />
     <ClCompile Include="BasicTaskScheduler.cpp" />
     <ClCompile Include="BasicTaskScheduler0.cpp" />

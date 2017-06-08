@@ -15,31 +15,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HashTable.cpp">
+    <ClCompile Include="testMP3Streamer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="strDup.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="UsageEnvironment.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="include\Boolean.hh">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\HashTable.hh">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\strDup.hh">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\UsageEnvironment.hh">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="include\UsageEnvironment_version.hh">
-      <Filter>头文件</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
