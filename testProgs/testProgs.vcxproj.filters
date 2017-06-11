@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="testMP3Streamer.cpp">
+    <ClCompile Include="testOnDemandRTSPServer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

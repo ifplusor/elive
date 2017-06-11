@@ -67,10 +67,10 @@ FramedSource* MP3AudioFileServerMediaSubsession
       if (streamSource == NULL) break;
 
       if (fInterleaving != NULL) {
-	// Add another filter that interleaves the ADUs before packetizing:
-	streamSource = MP3ADUinterleaver::createNew(envir(), *fInterleaving,
+	    // Add another filter that interleaves the ADUs before packetizing:
+	    streamSource = MP3ADUinterleaver::createNew(envir(), *fInterleaving,
 						    streamSource);
-	if (streamSource == NULL) break;
+	    if (streamSource == NULL) break;
       }
     } else if (fFileDuration > 0.0) {
       // Because this is a seekable file, insert a pair of filters: one that

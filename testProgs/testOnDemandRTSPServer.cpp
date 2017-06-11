@@ -26,7 +26,7 @@ UsageEnvironment* env;
 // To make the second and subsequent client for each stream reuse the same
 // input stream as the first client (rather than playing the file from the
 // start for each client), change the following "False" to "True":
-Boolean reuseFirstSource = False;
+Boolean reuseFirstSource = True;
 
 // To stream *only* MPEG-1 or 2 video "I" frames
 // (e.g., to reduce network bandwidth),
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   // "ServerMediaSubsession" objects for each audio/video substream.
 
   // A MPEG-4 video elementary stream:
-  {
+  if (0) {
     char const* streamName = "mpeg4ESVideoTest";
     char const* inputFileName = "test.m4e";
     ServerMediaSession* sms
@@ -108,7 +108,7 @@ int main(int argc, char** argv) {
   }
 
   // A H.265 video elementary stream:
-  {
+  if (0) {
     char const* streamName = "h265ESVideoTest";
     char const* inputFileName = "test.265";
     ServerMediaSession* sms
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
   }
 
   // A MPEG-1 or 2 audio+video program stream:
-  {
+  if (0) {
     char const* streamName = "mpeg1or2AudioVideoTest";
     char const* inputFileName = "test.mpg";
     // NOTE: This *must* be a Program Stream; not an Elementary Stream
@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
   }
 
   // A MPEG-1 or 2 video elementary stream:
-  {
+  if (0) {
     char const* streamName = "mpeg1or2ESVideoTest";
     char const* inputFileName = "testv.mpg";
     // NOTE: This *must* be a Video Elementary Stream; not a Program Stream
@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
   }
 
   // A WAV audio stream:
-  {
+  if (0) {
     char const* streamName = "wavAudioTest";
     char const* inputFileName = "test.wav";
     ServerMediaSession* sms
@@ -203,7 +203,7 @@ int main(int argc, char** argv) {
   }
 
   // An AMR audio stream:
-  {
+  if (0) {
     char const* streamName = "amrAudioTest";
     char const* inputFileName = "test.amr";
     ServerMediaSession* sms
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
   }
 
   // A 'VOB' file (e.g., from an unencrypted DVD):
-  {
+  if (0) {
     char const* streamName = "vobTest";
     char const* inputFileName = "test.vob";
     ServerMediaSession* sms
@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
   }
 
   // A MPEG-2 Transport Stream:
-  {
+  if (0) {
     char const* streamName = "mpeg2TransportStreamTest";
     char const* inputFileName = "test.ts";
     char const* indexFileName = "test.tsx";
@@ -249,7 +249,7 @@ int main(int argc, char** argv) {
   }
 
   // An AAC audio stream (ADTS-format file):
-  {
+  if (0) {
     char const* streamName = "aacAudioTest";
     char const* inputFileName = "test.aac";
     ServerMediaSession* sms
@@ -263,7 +263,7 @@ int main(int argc, char** argv) {
   }
 
   // A DV video stream:
-  {
+  if (0) {
     // First, make sure that the RTPSinks' buffers will be large enough to handle the huge size of DV frames (as big as 288000).
     OutPacketBuffer::maxSize = 300000;
 
@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
   }
 
   // A AC3 video elementary stream:
-  {
+  if (0) {
     char const* streamName = "ac3AudioTest";
     char const* inputFileName = "test.ac3";
     ServerMediaSession* sms
@@ -296,7 +296,7 @@ int main(int argc, char** argv) {
   }
 
   // A Matroska ('.mkv') file, with video+audio+subtitle streams:
-  {
+  if (0) {
     char const* streamName = "matroskaFileTest";
     char const* inputFileName = "test.mkv";
     ServerMediaSession* sms
@@ -323,7 +323,7 @@ int main(int argc, char** argv) {
 
   // A WebM ('.webm') file, with video(VP8)+audio(Vorbis) streams:
   // (Note: ".webm' files are special types of Matroska files, so we use the same code as the Matroska ('.mkv') file code above.)
-  {
+  if (0) {
     char const* streamName = "webmFileTest";
     char const* inputFileName = "test.webm";
     ServerMediaSession* sms
@@ -349,7 +349,7 @@ int main(int argc, char** argv) {
   }
 
   // An Ogg ('.ogg') file, with video and/or audio streams:
-  {
+  if (0) {
     char const* streamName = "oggFileTest";
     char const* inputFileName = "test.ogg";
     ServerMediaSession* sms
@@ -376,7 +376,7 @@ int main(int argc, char** argv) {
 
   // An Opus ('.opus') audio file:
   // (Note: ".opus' files are special types of Ogg files, so we use the same code as the Ogg ('.ogg') file code above.)
-  {
+  if (0) {
     char const* streamName = "opusFileTest";
     char const* inputFileName = "test.opus";
     ServerMediaSession* sms
@@ -402,7 +402,7 @@ int main(int argc, char** argv) {
   }
 
   // A MPEG-2 Transport Stream, coming from a live UDP (raw-UDP or RTP/UDP) source:
-  {
+  if (0) {
     char const* streamName = "mpeg2TransportStreamFromUDPSourceTest";
     char const* inputAddressStr = "239.255.42.42";
         // This causes the server to take its input from the stream sent by the "testMPEG2TransportStreamer" demo application.

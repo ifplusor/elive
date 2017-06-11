@@ -1,4 +1,4 @@
-/**********
+﻿/**********
 This library is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the
 Free Software Foundation; either version 3 of the License, or (at your
@@ -87,6 +87,8 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
   }
 
+  // 1.调用select检查fReadSet、fWriteSet和fExceptionSet看是否有满足条件添加的socket。然后遍历HandlerSet检查每个
+  //   socket的状态，如果状态得到满足即说明在该socket上发生了对应的事件，然后调用与该socket对应的处理函数。
   int selectResult = select(fMaxNumSockets, &readSet, &writeSet, &exceptionSet, &tv_timeToDelay);
   if (selectResult < 0) {
 #if defined(__WIN32__) || defined(_WIN32)
@@ -104,26 +106,26 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
 #else
     if (errno != EINTR && errno != EAGAIN) {
 #endif
-	// Unexpected error - treat this as fatal:
+	  // Unexpected error - treat this as fatal:
 #if !defined(_WIN32_WCE)
-	perror("BasicTaskScheduler::SingleStep(): select() fails");
-	// Because this failure is often "Bad file descriptor" - which is caused by an invalid socket number (i.e., a socket number
-	// that had already been closed) being used in "select()" - we print out the sockets that were being used in "select()",
-	// to assist in debugging:
-	fprintf(stderr, "socket numbers used in the select() call:");
-	for (int i = 0; i < 10000; ++i) {
-	  if (FD_ISSET(i, &fReadSet) || FD_ISSET(i, &fWriteSet) || FD_ISSET(i, &fExceptionSet)) {
-	    fprintf(stderr, " %d(", i);
-	    if (FD_ISSET(i, &fReadSet)) fprintf(stderr, "r");
-	    if (FD_ISSET(i, &fWriteSet)) fprintf(stderr, "w");
-	    if (FD_ISSET(i, &fExceptionSet)) fprintf(stderr, "e");
-	    fprintf(stderr, ")");
+	  perror("BasicTaskScheduler::SingleStep(): select() fails");
+	  // Because this failure is often "Bad file descriptor" - which is caused by an invalid socket number (i.e., a socket number
+	  // that had already been closed) being used in "select()" - we print out the sockets that were being used in "select()",
+	  // to assist in debugging:
+	  fprintf(stderr, "socket numbers used in the select() call:");
+	  for (int i = 0; i < 10000; ++i) {
+	    if (FD_ISSET(i, &fReadSet) || FD_ISSET(i, &fWriteSet) || FD_ISSET(i, &fExceptionSet)) {
+	      fprintf(stderr, " %d(", i);
+	      if (FD_ISSET(i, &fReadSet)) fprintf(stderr, "r");
+	      if (FD_ISSET(i, &fWriteSet)) fprintf(stderr, "w");
+	      if (FD_ISSET(i, &fExceptionSet)) fprintf(stderr, "e");
+	      fprintf(stderr, ")");
+	    }
 	  }
-	}
-	fprintf(stderr, "\n");
+	  fprintf(stderr, "\n");
 #endif
-	internalError();
-      }
+	  internalError();
+    }
   }
 
   // Call the handler function for one readable socket:
@@ -148,8 +150,8 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     if (FD_ISSET(sock, &exceptionSet) && FD_ISSET(sock, &fExceptionSet)/*sanity check*/) resultConditionSet |= SOCKET_EXCEPTION;
     if ((resultConditionSet&handler->conditionSet) != 0 && handler->handlerProc != NULL) {
       fLastHandledSocketNum = sock;
-          // Note: we set "fLastHandledSocketNum" before calling the handler,
-          // in case the handler calls "doEventLoop()" reentrantly.
+      // Note: we set "fLastHandledSocketNum" before calling the handler,
+      // in case the handler calls "doEventLoop()" reentrantly.
       (*handler->handlerProc)(handler->clientData, resultConditionSet);
       break;
     }
@@ -165,16 +167,17 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       if (FD_ISSET(sock, &writeSet) && FD_ISSET(sock, &fWriteSet)/*sanity check*/) resultConditionSet |= SOCKET_WRITABLE;
       if (FD_ISSET(sock, &exceptionSet) && FD_ISSET(sock, &fExceptionSet)/*sanity check*/) resultConditionSet |= SOCKET_EXCEPTION;
       if ((resultConditionSet&handler->conditionSet) != 0 && handler->handlerProc != NULL) {
-	fLastHandledSocketNum = sock;
+	    fLastHandledSocketNum = sock;
 	    // Note: we set "fLastHandledSocketNum" before calling the handler,
-            // in case the handler calls "doEventLoop()" reentrantly.
-	(*handler->handlerProc)(handler->clientData, resultConditionSet);
-	break;
+        // in case the handler calls "doEventLoop()" reentrantly.
+	    (*handler->handlerProc)(handler->clientData, resultConditionSet);
+	    break;
       }
     }
     if (handler == NULL) fLastHandledSocketNum = -1;//because we didn't call a handler
   }
 
+  // 2. 检查事件任务数组是否存在可用项，如存在则调用对应处理函数。
   // Also handle any newly-triggered event (Note that we do this *after* calling a socket handler,
   // in case the triggered event handler modifies The set of readable sockets.)
   if (fTriggersAwaitingHandling != 0) {
@@ -182,7 +185,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       // Common-case optimization for a single event trigger:
       fTriggersAwaitingHandling &=~ fLastUsedTriggerMask;
       if (fTriggeredEventHandlers[fLastUsedTriggerNum] != NULL) {
-	(*fTriggeredEventHandlers[fLastUsedTriggerNum])(fTriggeredEventClientDatas[fLastUsedTriggerNum]);
+	    (*fTriggeredEventHandlers[fLastUsedTriggerNum])(fTriggeredEventClientDatas[fLastUsedTriggerNum]);
       }
     } else {
       // Look for an event trigger that needs handling (making sure that we make forward progress through all possible triggers):
@@ -190,24 +193,25 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
       EventTriggerId mask = fLastUsedTriggerMask;
 
       do {
-	i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
-	mask >>= 1;
-	if (mask == 0) mask = 0x80000000;
+	    i = (i+1)%MAX_NUM_EVENT_TRIGGERS;
+	    mask >>= 1;
+	    if (mask == 0) mask = 0x80000000;
 
-	if ((fTriggersAwaitingHandling&mask) != 0) {
-	  fTriggersAwaitingHandling &=~ mask;
-	  if (fTriggeredEventHandlers[i] != NULL) {
-	    (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
-	  }
+	    if ((fTriggersAwaitingHandling&mask) != 0) {
+	      fTriggersAwaitingHandling &=~ mask;
+	      if (fTriggeredEventHandlers[i] != NULL) {
+	        (*fTriggeredEventHandlers[i])(fTriggeredEventClientDatas[i]);
+	      }
 
-	  fLastUsedTriggerMask = mask;
-	  fLastUsedTriggerNum = i;
-	  break;
-	}
+	      fLastUsedTriggerMask = mask;
+	      fLastUsedTriggerNum = i;
+	      break;
+	    }
       } while (i != fLastUsedTriggerNum);
     }
   }
 
+  // 3. 检查延时队列，看是否存在剩余时间为0的项，如找到则执行对应处理函数，然后将该项删除。
   // Also handle any delayed event that may have come due.
   fDelayQueue.handleAlarm();
 }

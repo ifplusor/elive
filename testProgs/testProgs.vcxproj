@@ -30,7 +30,7 @@
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
+    <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -72,7 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <ExecutablePath>$(SolutionDir)UsageEnvironment\include;$(SolutionDir)groupsock\include;$(SolutionDir)liveMedia\include;$(SolutionDir)BasicUsageEnvironment\include;$(ExecutablePath)</ExecutablePath>
+    <IncludePath>$(SolutionDir)UsageEnvironment\include;$(SolutionDir)groupsock\include;$(SolutionDir)liveMedia\include;$(SolutionDir)BasicUsageEnvironment\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -93,8 +93,9 @@
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>groupsock.lib;libliveMedia.lib;libUsageEnvironment.lib;libBasicUsageEnvironment.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>
+      </AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -142,7 +143,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="testMP3Streamer.cpp" />
+    <ProjectReference Include="..\BasicUsageEnvironment\BasicUsageEnvironment.vcxproj">
+      <Project>{e1891408-877a-41bf-9b72-67be4667126c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\groupsock\groupsock.vcxproj">
+      <Project>{4ad34a71-18f5-4e0d-9900-6a2fb34b1a0c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\liveMedia\liveMedia.vcxproj">
+      <Project>{cb7f5fd9-1798-48e6-a6f4-ae66a7c73c1e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\UsageEnvironment\UsageEnvironment.vcxproj">
+      <Project>{072356a9-62c1-4c90-ac9b-8935b2fb3121}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="testOnDemandRTSPServer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

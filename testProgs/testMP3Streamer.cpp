@@ -38,9 +38,8 @@ Boolean const isSSM = False;
 #endif
 
 // To set up an internal RTSP server, uncomment the following:
-//#define IMPLEMENT_RTSP_SERVER 1
+#define IMPLEMENT_RTSP_SERVER 1
 // (Note that this RTSP server works for multicast only)
-#define IMPLEMENT_RTSP_SERVER
 #ifdef IMPLEMENT_RTSP_SERVER
 RTSPServer* rtspServer;
 #endif

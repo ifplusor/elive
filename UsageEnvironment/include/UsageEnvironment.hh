@@ -101,7 +101,7 @@ private:
 
 typedef void TaskFunc(void* clientData);
 typedef void* TaskToken;
-typedef u_int32_t EventTriggerId;
+typedef u_int32_t EventTriggerId;  // bitmap, relate to items in fTriggeredEventClientDatas
 
 class TaskScheduler {
 public:
