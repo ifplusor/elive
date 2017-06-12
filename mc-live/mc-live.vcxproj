@@ -18,6 +18,27 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="DarwinInjector.cpp" />
+    <ClCompile Include="include\testMPEG4VideoToDarwin.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\DarwinInjector.hh" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BasicUsageEnvironment\BasicUsageEnvironment.vcxproj">
+      <Project>{e1891408-877a-41bf-9b72-67be4667126c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\groupsock\groupsock.vcxproj">
+      <Project>{4ad34a71-18f5-4e0d-9900-6a2fb34b1a0c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\liveMedia\liveMedia.vcxproj">
+      <Project>{cb7f5fd9-1798-48e6-a6f4-ae66a7c73c1e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\UsageEnvironment\UsageEnvironment.vcxproj">
+      <Project>{072356a9-62c1-4c90-ac9b-8935b2fb3121}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{CA1FD168-8553-4C56-AC68-F5067C7D35BB}</ProjectGuid>
@@ -70,13 +91,13 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)UsageEnvironment\include;$(SolutionDir)groupsock\include;$(SolutionDir)liveMedia\include;$(SolutionDir)BasicUsageEnvironment\include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)include;$(SolutionDir)UsageEnvironment\include;$(SolutionDir)groupsock\include;$(SolutionDir)liveMedia\include;$(SolutionDir)BasicUsageEnvironment\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <SDLCheck>true</SDLCheck>
+      <SDLCheck>false</SDLCheck>
     </ClCompile>
     <Link>
       <AdditionalDependencies>groupsock.lib;libliveMedia.lib;libUsageEnvironment.lib;libBasicUsageEnvironment.lib;ws2_32.lib</AdditionalDependencies>
