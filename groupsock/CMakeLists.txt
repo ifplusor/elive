@@ -8,4 +8,6 @@ add_library(groupsock STATIC
 target_include_directories(groupsock PUBLIC
 		${PROJECT_SOURCE_DIR}/UsageEnvironment/include
 		${PROJECT_SOURCE_DIR}/groupsock/include)
+target_compile_options(groupsock
+		PRIVATE -fPIC)
 

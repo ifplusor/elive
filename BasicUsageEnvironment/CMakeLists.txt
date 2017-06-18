@@ -9,4 +9,6 @@ target_include_directories(BasicUsageEnvironment PUBLIC
 		${PROJECT_SOURCE_DIR}/UsageEnvironment/include
 		${PROJECT_SOURCE_DIR}/groupsock/include
 		${PROJECT_SOURCE_DIR}/BasicUsageEnvironment/include)
+target_compile_options(BasicUsageEnvironment
+		PRIVATE -fPIC)
 

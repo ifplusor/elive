@@ -288,6 +288,10 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 
-build
+build/
+lib/
 
 CMakeSettings.json
+
+.idea/
+cmake-build-debug/

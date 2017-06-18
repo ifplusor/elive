@@ -7,4 +7,6 @@ add_library(UsageEnvironment STATIC
 target_include_directories(UsageEnvironment PUBLIC
 		${PROJECT_SOURCE_DIR}/UsageEnvironment/include
 		${PROJECT_SOURCE_DIR}/groupsock/include)
+target_compile_options(UsageEnvironment
+		PRIVATE -fPIC)
 
