@@ -90,7 +90,7 @@ void DarwinInjector::addStream(RTPSink* rtpSink, RTCPInstance* rtcpInstance) {
   SubstreamDescriptor* newDescriptor = new SubstreamDescriptor(rtpSink, rtcpInstance, ++fLastTrackId);
   if (fHeadSubstream == NULL) {
     fHeadSubstream = fTailSubstream = newDescriptor;
-  } else {
+  } else {  // β�巨
     fTailSubstream->next() = newDescriptor;
     fTailSubstream = newDescriptor;
   }
@@ -235,7 +235,7 @@ Boolean DarwinInjector
       // the RTSP TCP connection:
       ss->rtpSink()->setStreamSocket(fRTSPClient->socketNum(), streamChannelId++);
       if (ss->rtcpInstance() != NULL) {
-	ss->rtcpInstance()->setStreamSocket(fRTSPClient->socketNum(),
+	    ss->rtcpInstance()->setStreamSocket(fRTSPClient->socketNum(),
 					    streamChannelId++);
       }
       ss = ss->next();

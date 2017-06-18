@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
   env = BasicUsageEnvironment::createNew(*scheduler);
 
   // Parse command-line arguments:
-  programName = argv[0];
+  programName = "mediaClient";  //argv[0];
   if (argc != 2) usage();
   char const* dssNameOrAddress = argv[1];
 
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
 
   // Next, specify the destination Darwin Streaming Server:
   if (!injector->setDestination(dssNameOrAddress, remoteStreamName,
-				programName, "LIVE555 Streaming Media")) {
+				programName, "LIVE555 Streaming Media", 8554)) {
     *env << "injector->setDestination() failed: "
 	 << env->getResultMsg() << "\n";
     exit(1);
@@ -155,7 +155,7 @@ static void checkForAuxSDPLine(void* clientData) {
     // Signal the event loop that we're done:
     doneFlag = ~0;
   } else {
-    // No luck yet.  Try again, after a brief delay:
+    // No luck yet. Try again, after a brief delay:
     int uSecsToDelay = 100000; // 100 ms
     env->taskScheduler().scheduleDelayedTask(uSecsToDelay,
 					     (TaskFunc*)checkForAuxSDPLine, sink);
