@@ -90,7 +90,7 @@ void DarwinInjector::addStream(RTPSink* rtpSink, RTCPInstance* rtcpInstance) {
   SubstreamDescriptor* newDescriptor = new SubstreamDescriptor(rtpSink, rtcpInstance, ++fLastTrackId);
   if (fHeadSubstream == NULL) {
     fHeadSubstream = fTailSubstream = newDescriptor;
-  } else {  // β�巨
+  } else {  // 尾插法
     fTailSubstream->next() = newDescriptor;
     fTailSubstream = newDescriptor;
   }

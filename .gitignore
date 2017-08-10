@@ -266,7 +266,8 @@ paket-files/
 
 # JetBrains Rider
 .idea/
-*.sln.iml
+*.iml
+cmake-build-debug/
 
 # CodeRush
 .cr/
@@ -293,5 +294,4 @@ lib/
 
 CMakeSettings.json
 
-.idea/
-cmake-build-debug/
+
