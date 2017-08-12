@@ -29,13 +29,13 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "BasicUsageEnvironment.hh"
 #include "DarwinInjector.hh"
 
-UsageEnvironment* env;
-char const* inputFileName = "test.m4e";
-char const* remoteStreamName = "test.sdp"; // the stream name, as served by the DSS
-MPEG4VideoStreamFramer* videoSource;
-RTPSink* videoSink;
+UsageEnvironment *env;
+char const *inputFileName = "test.m4e";
+char const *remoteStreamName = "test.sdp"; // the stream name, as served by the DSS
+MPEG4VideoStreamFramer *videoSource;
+RTPSink *videoSink;
 
-char const* programName;
+char const *programName;
 
 void usage() {
   *env << "usage: " << programName
@@ -43,21 +43,21 @@ void usage() {
   exit(1);
 }
 
-Boolean awaitConfigInfo(RTPSink* sink); // forward
+Boolean awaitConfigInfo(RTPSink *sink); // forward
 void play(); // forward
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
   // Begin by setting up our usage environment:
-  TaskScheduler* scheduler = BasicTaskScheduler::createNew();
+  TaskScheduler *scheduler = BasicTaskScheduler::createNew();
   env = BasicUsageEnvironment::createNew(*scheduler);
 
   // Parse command-line arguments:
   programName = "mediaClient";  //argv[0];
   if (argc != 2) usage();
-  char const* dssNameOrAddress = argv[1];
+  char const *dssNameOrAddress = argv[1];
 
   // Create a 'Darwin injector' object:
-  DarwinInjector* injector = DarwinInjector::createNew(*env, programName);
+  DarwinInjector *injector = DarwinInjector::createNew(*env, programName);
 
   // Create 'groupsocks' for RTP and RTCP.
   // (Note: Because we will actually be streaming through a remote Darwin server,
@@ -82,30 +82,37 @@ int main(int argc, char** argv) {
 
   if (!awaitConfigInfo(videoSink)) {
     *env << "Failed to get MPEG-4 'config' information from input file: "
-	 << env->getResultMsg() << "\n";
+         << env->getResultMsg() << "\n";
     exit(1);
   }
 
   // Create (and start) a 'RTCP instance' for this RTP sink:
   const unsigned estimatedSessionBandwidthVideo = 500; // in kbps; for RTCP b/w share
   const unsigned maxCNAMElen = 100;
-  unsigned char CNAME[maxCNAMElen+1];
-  gethostname((char*)CNAME, maxCNAMElen);
+  unsigned char CNAME[maxCNAMElen + 1];
+  gethostname((char *) CNAME, maxCNAMElen);
   CNAME[maxCNAMElen] = '\0'; // just in case
-  RTCPInstance* videoRTCP =
-    RTCPInstance::createNew(*env, &rtcpGroupsockVideo,
-			    estimatedSessionBandwidthVideo, CNAME,
-			    videoSink, NULL /* we're a server */);
+  RTCPInstance *videoRTCP =
+      RTCPInstance::createNew(*env, &rtcpGroupsockVideo,
+                              estimatedSessionBandwidthVideo, CNAME,
+                              videoSink, NULL /* we're a server */);
   // Note: This starts RTCP running automatically
 
   // Add these to our 'Darwin injector':
   injector->addStream(videoSink, videoRTCP);
 
   // Next, specify the destination Darwin Streaming Server:
-  if (!injector->setDestination(dssNameOrAddress, remoteStreamName,
-				programName, "LIVE555 Streaming Media", 8554)) {
+  if (!injector->setDestination(dssNameOrAddress,
+                                remoteStreamName,
+                                programName,
+                                "LIVE555 Streaming Media",
+                                8554,
+                                "admin",
+                                "123456",
+                                "james",
+                                "ifplusor")) {
     *env << "injector->setDestination() failed: "
-	 << env->getResultMsg() << "\n";
+         << env->getResultMsg() << "\n";
     exit(1);
   }
 
@@ -117,7 +124,7 @@ int main(int argc, char** argv) {
   return 0; // only to prevent compiler warning
 }
 
-void afterPlaying(void* clientData) {
+void afterPlaying(void *clientData) {
   *env << "...done reading from file\n";
 
   Medium::close(videoSource);
@@ -129,18 +136,18 @@ void afterPlaying(void* clientData) {
 
 void play() {
   // Open the input file as a 'byte-stream file source':
-  ByteStreamFileSource* fileSource
-    = ByteStreamFileSource::createNew(*env, inputFileName);
+  ByteStreamFileSource *fileSource
+      = ByteStreamFileSource::createNew(*env, inputFileName);
   if (fileSource == NULL) {
     *env << "Unable to open file \"" << inputFileName
-	 << "\" as a byte-stream file source\n";
+         << "\" as a byte-stream file source\n";
     exit(1);
   }
 
-  FramedSource* videoES = fileSource;
+  FramedSource *videoES = fileSource;
 
   // Create a framer for the Video Elementary Stream:
-  FramedSource* videoSource = MPEG4VideoStreamFramer::createNew(*env, videoES);
+  FramedSource *videoSource = MPEG4VideoStreamFramer::createNew(*env, videoES);
 
   // Finally, start playing:
   *env << "Beginning to read from file...\n";
@@ -149,8 +156,8 @@ void play() {
 
 static char doneFlag = 0;
 
-static void checkForAuxSDPLine(void* clientData) {
-  RTPSink* sink = (RTPSink*)clientData;
+static void checkForAuxSDPLine(void *clientData) {
+  RTPSink *sink = (RTPSink *) clientData;
   if (sink->auxSDPLine() != NULL) {
     // Signal the event loop that we're done:
     doneFlag = ~0;
@@ -158,16 +165,17 @@ static void checkForAuxSDPLine(void* clientData) {
     // No luck yet. Try again, after a brief delay:
     int uSecsToDelay = 100000; // 100 ms
     env->taskScheduler().scheduleDelayedTask(uSecsToDelay,
-					     (TaskFunc*)checkForAuxSDPLine, sink);
+                                             (TaskFunc *) checkForAuxSDPLine,
+                                             sink);
   }
 }
 
-Boolean awaitConfigInfo(RTPSink* sink) {
+Boolean awaitConfigInfo(RTPSink *sink) {
   // Check whether the sink's 'auxSDPLine()' is ready:
   checkForAuxSDPLine(sink);
 
   env->taskScheduler().doEventLoop(&doneFlag);
 
-  char const* auxSDPLine = sink->auxSDPLine();
+  char const *auxSDPLine = sink->auxSDPLine();
   return auxSDPLine != NULL;
 }

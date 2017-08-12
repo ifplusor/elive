@@ -24,36 +24,38 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 ////////// SubstreamDescriptor definition //////////
 
 class SubstreamDescriptor {
-public:
-  SubstreamDescriptor(RTPSink* rtpSink, RTCPInstance* rtcpInstance, unsigned trackId);
+ public:
+  SubstreamDescriptor(RTPSink *rtpSink,
+                      RTCPInstance *rtcpInstance,
+                      unsigned trackId);
   ~SubstreamDescriptor();
 
-  SubstreamDescriptor*& next() { return fNext; }
-  RTPSink* rtpSink() const { return fRTPSink; }
-  RTCPInstance* rtcpInstance() const { return fRTCPInstance; }
-  char const* sdpLines() const { return fSDPLines; }
+  SubstreamDescriptor *&next() { return fNext; }
+  RTPSink *rtpSink() const { return fRTPSink; }
+  RTCPInstance *rtcpInstance() const { return fRTCPInstance; }
+  char const *sdpLines() const { return fSDPLines; }
 
-private:
-  SubstreamDescriptor* fNext;
-  RTPSink* fRTPSink;
-  RTCPInstance* fRTCPInstance;
-  char* fSDPLines;
+ private:
+  SubstreamDescriptor *fNext;
+  RTPSink *fRTPSink;
+  RTCPInstance *fRTCPInstance;
+  char *fSDPLines;
 };
 
 
 ////////// DarwinInjector implementation //////////
 
-DarwinInjector* DarwinInjector::createNew(UsageEnvironment& env,
-					  char const* applicationName,
-					  int verbosityLevel) {
+DarwinInjector *DarwinInjector::createNew(UsageEnvironment &env,
+                                          char const *applicationName,
+                                          int verbosityLevel) {
   return new DarwinInjector(env, applicationName, verbosityLevel);
 }
 
-Boolean DarwinInjector::lookupByName(UsageEnvironment& env, char const* name,
-				     DarwinInjector*& result) {
+Boolean DarwinInjector::lookupByName(UsageEnvironment &env, char const *name,
+                                     DarwinInjector *&result) {
   result = NULL; // unless we succeed
 
-  Medium* medium;
+  Medium *medium;
   if (!Medium::lookupByName(env, name, medium)) return False;
 
   if (!medium->isDarwinInjector()) {
@@ -61,16 +63,22 @@ Boolean DarwinInjector::lookupByName(UsageEnvironment& env, char const* name,
     return False;
   }
 
-  result = (DarwinInjector*)medium;
+  result = (DarwinInjector *) medium;
   return True;
 }
 
-DarwinInjector::DarwinInjector(UsageEnvironment& env,
-			       char const* applicationName, int verbosityLevel)
-  : Medium(env),
-    fApplicationName(strDup(applicationName)), fVerbosityLevel(verbosityLevel),
-    fRTSPClient(NULL), fSubstreamSDPSizes(0),
-    fHeadSubstream(NULL), fTailSubstream(NULL), fSession(NULL), fLastTrackId(0), fResultString(NULL) {
+DarwinInjector::DarwinInjector(UsageEnvironment &env,
+                               char const *applicationName, int verbosityLevel)
+    : Medium(env),
+      fApplicationName(strDup(applicationName)),
+      fVerbosityLevel(verbosityLevel),
+      fRTSPClient(NULL),
+      fSubstreamSDPSizes(0),
+      fHeadSubstream(NULL),
+      fTailSubstream(NULL),
+      fSession(NULL),
+      fLastTrackId(0),
+      fResultString(NULL) {
 }
 
 DarwinInjector::~DarwinInjector() {
@@ -80,14 +88,15 @@ DarwinInjector::~DarwinInjector() {
   }
 
   delete fHeadSubstream;
-  delete[] (char*)fApplicationName;
+  delete[] (char *) fApplicationName;
   Medium::close(fRTSPClient);
 }
 
-void DarwinInjector::addStream(RTPSink* rtpSink, RTCPInstance* rtcpInstance) {
+void DarwinInjector::addStream(RTPSink *rtpSink, RTCPInstance *rtcpInstance) {
   if (rtpSink == NULL) return; // "rtpSink" should be non-NULL
 
-  SubstreamDescriptor* newDescriptor = new SubstreamDescriptor(rtpSink, rtcpInstance, ++fLastTrackId);
+  SubstreamDescriptor *newDescriptor =
+      new SubstreamDescriptor(rtpSink, rtcpInstance, ++fLastTrackId);
   if (fHeadSubstream == NULL) {
     fHeadSubstream = fTailSubstream = newDescriptor;
   } else {  // 尾插法
@@ -99,41 +108,52 @@ void DarwinInjector::addStream(RTPSink* rtpSink, RTCPInstance* rtcpInstance) {
 }
 
 // Define a special subclass of "RTSPClient" that has a pointer field to a "DarwinInjector".  We'll use this to implement RTSP ops:
-class RTSPClientForDarwinInjector: public RTSPClient {
-public:
-  RTSPClientForDarwinInjector(UsageEnvironment& env, char const* rtspURL, int verbosityLevel, char const* applicationName,
-			      DarwinInjector* ourDarwinInjector)
-    : RTSPClient(env, rtspURL, verbosityLevel, applicationName, 0, -1),
-      fOurDarwinInjector(ourDarwinInjector) {}
+class RTSPClientForDarwinInjector : public RTSPClient {
+ public:
+  RTSPClientForDarwinInjector(UsageEnvironment &env,
+                              char const *rtspURL,
+                              int verbosityLevel,
+                              char const *applicationName,
+                              DarwinInjector *ourDarwinInjector)
+      : RTSPClient(env, rtspURL, verbosityLevel, applicationName, 0, -1),
+        fOurDarwinInjector(ourDarwinInjector) {}
   virtual ~RTSPClientForDarwinInjector() {}
-  DarwinInjector* fOurDarwinInjector;
+  DarwinInjector *fOurDarwinInjector;
 };
 
 Boolean DarwinInjector
-::setDestination(char const* remoteRTSPServerNameOrAddress,
-		 char const* remoteFileName,
-		 char const* sessionName,
-		 char const* sessionInfo,
-		 portNumBits remoteRTSPServerPortNumber,
-		 char const* remoteUserName,
-		 char const* remotePassword,
-		 char const* sessionAuthor,
-		 char const* sessionCopyright,
-		 int timeout) {
-  char* sdp = NULL;
-  char* url = NULL;
+::setDestination(char const *remoteRTSPServerNameOrAddress,
+                 char const *remoteFileName,
+                 char const *sessionName,
+                 char const *sessionInfo,
+                 portNumBits remoteRTSPServerPortNumber,
+                 char const *remoteUserName,
+                 char const *remotePassword,
+                 char const *sessionAuthor,
+                 char const *sessionCopyright,
+                 int timeout) {
+  char *sdp = NULL;
+  char *url = NULL;
   Boolean success = False; // until we learn otherwise
 
   do {
     // Construct a RTSP URL for the remote stream:
-    char const* const urlFmt = "rtsp://%s:%u/%s";
-    unsigned urlLen
-      = strlen(urlFmt) + strlen(remoteRTSPServerNameOrAddress) + 5 /* max short len */ + strlen(remoteFileName);
+    char const *const urlFmt = "rtsp://%s:%u/%s";
+    size_t urlLen = strlen(urlFmt) + strlen(remoteRTSPServerNameOrAddress)
+        + 5 /* max short len */ + strlen(remoteFileName);
     url = new char[urlLen];
-    sprintf(url, urlFmt, remoteRTSPServerNameOrAddress, remoteRTSPServerPortNumber, remoteFileName);
+    sprintf(url,
+            urlFmt,
+            remoteRTSPServerNameOrAddress,
+            remoteRTSPServerPortNumber,
+            remoteFileName);
 
     // Begin by creating our RTSP client object:
-    fRTSPClient = new RTSPClientForDarwinInjector(envir(), url, fVerbosityLevel, fApplicationName, this);
+    fRTSPClient = new RTSPClientForDarwinInjector(envir(),
+                                                  url,
+                                                  fVerbosityLevel,
+                                                  fApplicationName,
+                                                  this);
     if (fRTSPClient == NULL) break;
 
     // Get the remote RTSP server's IP address:
@@ -141,52 +161,53 @@ Boolean DarwinInjector
     {
       NetAddressList addresses(remoteRTSPServerNameOrAddress);
       if (addresses.numAddresses() == 0) break;
-      NetAddress const* address = addresses.firstAddress();
-      addr.s_addr = *(unsigned*)(address->data());
+      NetAddress const *address = addresses.firstAddress();
+      addr.s_addr = *(unsigned *) (address->data());
     }
     AddressString remoteRTSPServerAddressStr(addr);
 
     // Construct a SDP description for the session that we'll be streaming:
-    char const* const sdpFmt =
-      "v=0\r\n"
-      "o=- %u %u IN IP4 127.0.0.1\r\n"
-      "s=%s\r\n"
-      "i=%s\r\n"
-      "c=IN IP4 %s\r\n"
-      "t=0 0\r\n"
-      "a=x-qt-text-nam:%s\r\n"
-      "a=x-qt-text-inf:%s\r\n"
-      "a=x-qt-text-cmt:source application:%s\r\n"
-      "a=x-qt-text-aut:%s\r\n"
-      "a=x-qt-text-cpy:%s\r\n";
-      // plus, %s for each substream SDP
-    unsigned sdpLen = strlen(sdpFmt)
-      + 20 /* max int len */ + 20 /* max int len */
-      + strlen(sessionName)
-      + strlen(sessionInfo)
-      + strlen(remoteRTSPServerAddressStr.val())
-      + strlen(sessionName)
-      + strlen(sessionInfo)
-      + strlen(fApplicationName)
-      + strlen(sessionAuthor)
-      + strlen(sessionCopyright)
-      + fSubstreamSDPSizes;
+    char const *const sdpFmt = "v=0\r\n"
+        "o=- %u %u IN IP4 127.0.0.1\r\n"
+        "s=%s\r\n"
+        "i=%s\r\n"
+        "c=IN IP4 %s\r\n"
+        "t=0 0\r\n"
+        "a=x-qt-text-nam:%s\r\n"
+        "a=x-qt-text-inf:%s\r\n"
+        "a=x-qt-text-cmt:source application:%s\r\n"
+        "a=x-qt-text-aut:%s\r\n"
+        "a=x-qt-text-cpy:%s\r\n";
+    // plus, %s for each substream SDP
+    size_t sdpLen = strlen(sdpFmt)
+        + 20 /* max int len */ + 20 /* max int len */
+        + strlen(sessionName)
+        + strlen(sessionInfo)
+        + strlen(remoteRTSPServerAddressStr.val())
+        + strlen(sessionName)
+        + strlen(sessionInfo)
+        + strlen(fApplicationName)
+        + strlen(sessionAuthor)
+        + strlen(sessionCopyright)
+        + fSubstreamSDPSizes;
     unsigned const sdpSessionId = our_random32();
     unsigned const sdpVersion = sdpSessionId;
     sdp = new char[sdpLen];
+    // NOTE: 如果目标服务器隐藏在 NAT 后面，在 c 行直接使用
+    //   remoteRTSPServerAddressStr，则 DSS 不能识别为其 IP 地址
     sprintf(sdp, sdpFmt,
-	    sdpSessionId, sdpVersion, // o= line
-	    sessionName, // s= line
-	    sessionInfo, // i= line
-	    remoteRTSPServerAddressStr.val(), // c= line
-	    sessionName, // a=x-qt-text-nam: line
-	    sessionInfo, // a=x-qt-text-inf: line
-	    fApplicationName, // a=x-qt-text-cmt: line
-	    sessionAuthor, // a=x-qt-text-aut: line
-	    sessionCopyright // a=x-qt-text-cpy: line
-	    );
-    char* p = &sdp[strlen(sdp)];
-    SubstreamDescriptor* ss;
+            sdpSessionId, sdpVersion, // o= line
+            sessionName, // s= line
+            sessionInfo, // i= line
+            "127.0.0.1", // c= line
+            sessionName, // a=x-qt-text-nam: line
+            sessionInfo, // a=x-qt-text-inf: line
+            fApplicationName, // a=x-qt-text-cmt: line
+            sessionAuthor, // a=x-qt-text-aut: line
+            sessionCopyright // a=x-qt-text-cpy: line
+    );
+    char *p = &sdp[strlen(sdp)];
+    SubstreamDescriptor *ss;
     for (ss = fHeadSubstream; ss != NULL; ss = ss->next()) {
       sprintf(p, "%s", ss->sdpLines());
       p += strlen(p);
@@ -194,19 +215,22 @@ Boolean DarwinInjector
 
     // Do a RTSP "ANNOUNCE" with this SDP description:
     Authenticator auth;
-    Authenticator* authToUse = NULL;
+    Authenticator *authToUse = NULL;
     if (remoteUserName[0] != '\0' || remotePassword[0] != '\0') {
       auth.setUsernameAndPassword(remoteUserName, remotePassword);
       authToUse = &auth;
     }
     fWatchVariable = 0;
-    (void)fRTSPClient->sendAnnounceCommand(sdp, genericResponseHandler, authToUse);
+    (void) fRTSPClient->sendAnnounceCommand(sdp,
+                                            genericResponseHandler,
+                                            authToUse);
 
     // Now block (but handling events) until we get a response:
     envir().taskScheduler().doEventLoop(&fWatchVariable);
 
     delete[] fResultString;
-    if (fResultCode != 0) break; // an error occurred with the RTSP "ANNOUNCE" command
+    if (fResultCode != 0)
+      break; // an error occurred with the RTSP "ANNOUNCE" command
 
     // Next, tell the remote server to start receiving the stream from us.
     // (To do this, we first create a "MediaSession" object from the SDP description.)
@@ -215,28 +239,30 @@ Boolean DarwinInjector
 
     ss = fHeadSubstream;
     MediaSubsessionIterator iter(*fSession);
-    MediaSubsession* subsession;
+    MediaSubsession *subsession;
     ss = fHeadSubstream;
     unsigned streamChannelId = 0;
     while ((subsession = iter.next()) != NULL) {
       if (!subsession->initiate()) break;
 
       fWatchVariable = 0;
-      (void)fRTSPClient->sendSetupCommand(*subsession, genericResponseHandler,
-					  True /*streamOutgoing*/,
-					  True /*streamUsingTCP*/);
+      (void) fRTSPClient->sendSetupCommand(*subsession, genericResponseHandler,
+                                           True /*streamOutgoing*/,
+                                           True /*streamUsingTCP*/);
       // Now block (but handling events) until we get a response:
       envir().taskScheduler().doEventLoop(&fWatchVariable);
 
       delete[] fResultString;
-      if (fResultCode != 0) break; // an error occurred with the RTSP "SETUP" command
+      if (fResultCode != 0)
+        break; // an error occurred with the RTSP "SETUP" command
 
       // Tell this subsession's RTPSink and RTCPInstance to use
       // the RTSP TCP connection:
-      ss->rtpSink()->setStreamSocket(fRTSPClient->socketNum(), streamChannelId++);
+      ss->rtpSink()->setStreamSocket(fRTSPClient->socketNum(),
+                                     streamChannelId++);
       if (ss->rtcpInstance() != NULL) {
-	    ss->rtcpInstance()->setStreamSocket(fRTSPClient->socketNum(),
-					    streamChannelId++);
+        ss->rtcpInstance()->setStreamSocket(fRTSPClient->socketNum(),
+                                            streamChannelId++);
       }
       ss = ss->next();
     }
@@ -244,16 +270,17 @@ Boolean DarwinInjector
 
     // Tell the RTSP server to start:
     fWatchVariable = 0;
-    (void)fRTSPClient->sendPlayCommand(*fSession, genericResponseHandler);
+    (void) fRTSPClient->sendPlayCommand(*fSession, genericResponseHandler);
 
     // Now block (but handling events) until we get a response:
     envir().taskScheduler().doEventLoop(&fWatchVariable);
 
     delete[] fResultString;
-    if (fResultCode != 0) break; // an error occurred with the RTSP "PLAY" command
+    if (fResultCode != 0)
+      break; // an error occurred with the RTSP "PLAY" command
 
     // Finally, make sure that the output TCP buffer is a reasonable size:
-    increaseSendBufferTo(envir(), fRTSPClient->socketNum(), 100*1024);
+    increaseSendBufferTo(envir(), fRTSPClient->socketNum(), 100 * 1024);
 
     success = True;
   } while (0);
@@ -267,12 +294,16 @@ Boolean DarwinInjector::isDarwinInjector() const {
   return True;
 }
 
-void DarwinInjector::genericResponseHandler(RTSPClient* rtspClient, int responseCode, char* responseString) {
-  DarwinInjector* di = ((RTSPClientForDarwinInjector*)rtspClient)-> fOurDarwinInjector;
+void DarwinInjector::genericResponseHandler(RTSPClient *rtspClient,
+                                            int responseCode,
+                                            char *responseString) {
+  DarwinInjector
+      *di = ((RTSPClientForDarwinInjector *) rtspClient)->fOurDarwinInjector;
   di->genericResponseHandler1(responseCode, responseString);
 }
 
-void DarwinInjector::genericResponseHandler1(int responseCode, char* responseString) {
+void DarwinInjector::genericResponseHandler1(int responseCode,
+                                             char *responseString) {
   // Set result values:
   fResultCode = responseCode;
   fResultString = responseString;
@@ -283,28 +314,29 @@ void DarwinInjector::genericResponseHandler1(int responseCode, char* responseStr
 
 ////////// SubstreamDescriptor implementation //////////
 
-SubstreamDescriptor::SubstreamDescriptor(RTPSink* rtpSink,
-					 RTCPInstance* rtcpInstance, unsigned trackId)
-  : fNext(NULL), fRTPSink(rtpSink), fRTCPInstance(rtcpInstance) {
+SubstreamDescriptor::SubstreamDescriptor(RTPSink *rtpSink,
+                                         RTCPInstance *rtcpInstance,
+                                         unsigned trackId)
+    : fNext(NULL), fRTPSink(rtpSink), fRTCPInstance(rtcpInstance) {
   // Create the SDP description for this substream
-  char const* mediaType = fRTPSink->sdpMediaType();
+  char const *mediaType = fRTPSink->sdpMediaType();
   unsigned char rtpPayloadType = fRTPSink->rtpPayloadType();
-  char const* rtpPayloadFormatName = fRTPSink->rtpPayloadFormatName();
+  char const *rtpPayloadFormatName = fRTPSink->rtpPayloadFormatName();
   unsigned rtpTimestampFrequency = fRTPSink->rtpTimestampFrequency();
   unsigned numChannels = fRTPSink->numChannels();
-  char* rtpmapLine;
+  char *rtpmapLine;
   if (rtpPayloadType >= 96) {
-    char* encodingParamsPart;
+    char *encodingParamsPart;
     if (numChannels != 1) {
       encodingParamsPart = new char[1 + 20 /* max int len */];
       sprintf(encodingParamsPart, "/%d", numChannels);
     } else {
       encodingParamsPart = strDup("");
     }
-    char const* const rtpmapFmt = "a=rtpmap:%d %s/%d%s\r\n";
-    unsigned rtpmapFmtSize = strlen(rtpmapFmt)
-      + 3 /* max char len */ + strlen(rtpPayloadFormatName)
-      + 20 /* max int len */ + strlen(encodingParamsPart);
+    char const *const rtpmapFmt = "a=rtpmap:%d %s/%d%s\r\n";
+    size_t rtpmapFmtSize = strlen(rtpmapFmt)
+        + 3 /* max char len */ + strlen(rtpPayloadFormatName)
+        + 20 /* max int len */ + strlen(encodingParamsPart);
     rtpmapLine = new char[rtpmapFmtSize];
     sprintf(rtpmapLine, rtpmapFmt,
             rtpPayloadType, rtpPayloadFormatName,
@@ -314,22 +346,23 @@ SubstreamDescriptor::SubstreamDescriptor(RTPSink* rtpSink,
     // Static payload type => no "a=rtpmap:" line
     rtpmapLine = strDup("");
   }
-  unsigned rtpmapLineSize = strlen(rtpmapLine);
-  char const* auxSDPLine = fRTPSink->auxSDPLine();
+  size_t rtpmapLineSize = strlen(rtpmapLine);
+  char const *auxSDPLine = fRTPSink->auxSDPLine();
   if (auxSDPLine == NULL) auxSDPLine = "";
-  unsigned auxSDPLineSize = strlen(auxSDPLine);
+  size_t auxSDPLineSize = strlen(auxSDPLine);
 
-  char const* const sdpFmt =
-    "m=%s 0 RTP/AVP %u\r\n"
-    "%s" // "a=rtpmap:" line (if present)
-    "%s" // auxilliary (e.g., "a=fmtp:") line (if present)
-    "a=control:trackID=%u\r\n";
-  unsigned sdpFmtSize = strlen(sdpFmt)
-    + strlen(mediaType) + 3 /* max char len */
-    + rtpmapLineSize
-    + auxSDPLineSize
-    + 20 /* max int len */;
-  char* sdpLines = new char[sdpFmtSize];
+  // TODO: VLC 不支持 RTP/AVP/TCP 类型的流
+  char const *const sdpFmt =
+      "m=%s 0 RTP/AVP %u\r\n"
+          "%s" // "a=rtpmap:" line (if present)
+          "%s" // auxilliary (e.g., "a=fmtp:") line (if present)
+          "a=control:trackID=%u\r\n";
+  size_t sdpFmtSize = strlen(sdpFmt)
+      + strlen(mediaType) + 3 /* max char len */
+      + rtpmapLineSize
+      + auxSDPLineSize
+      + 20 /* max int len */;
+  char *sdpLines = new char[sdpFmtSize];
   sprintf(sdpLines, sdpFmt,
           mediaType, // m= <media>
           rtpPayloadType, // m= <fmt list>
