@@ -1,13 +1,19 @@
-cmake_minimum_required(VERSION 2.8)
-#project(groupsock)
+set(HEADER_FILES
+        include/TunnelEncaps.hh include/groupsock_version.hh
+        include/GroupsockHelper.hh include/GroupEId.hh include/Groupsock.hh
+        include/NetCommon.h include/NetInterface.hh include/NetAddress.hh
+        include/IOHandlers.hh)
 
+set(SOURCE_FILES
+        GroupsockHelper.cpp GroupEId.cpp inet.c Groupsock.cpp
+        NetInterface.cpp NetAddress.cpp IOHandlers.cpp)
 
 add_library(groupsock STATIC
-		GroupsockHelper.cpp GroupEId.cpp inet.c Groupsock.cpp
-		NetInterface.cpp NetAddress.cpp IOHandlers.cpp)
-target_include_directories(groupsock PUBLIC
-		${PROJECT_SOURCE_DIR}/UsageEnvironment/include
-		${PROJECT_SOURCE_DIR}/groupsock/include)
+        ${HEADER_FILES} ${SOURCE_FILES})
+target_include_directories(groupsock
+        PUBLIC include)
+target_link_libraries(groupsock
+        PUBLIC UsageEnvironment)
 target_compile_options(groupsock
-		PRIVATE -fPIC)
+        PRIVATE -fPIC)
 

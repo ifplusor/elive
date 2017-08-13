@@ -26,23 +26,26 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "FileServerMediaSubsession.hh"
 #endif
 
-class ADTSAudioFileServerMediaSubsession: public FileServerMediaSubsession{
-public:
-  static ADTSAudioFileServerMediaSubsession*
-  createNew(UsageEnvironment& env, char const* fileName, Boolean reuseFirstSource);
+class ADTSAudioFileServerMediaSubsession : public FileServerMediaSubsession {
+ public:
+  static ADTSAudioFileServerMediaSubsession *
+  createNew(UsageEnvironment &env,
+            char const *fileName,
+            Boolean reuseFirstSource);
 
-protected:
-  ADTSAudioFileServerMediaSubsession(UsageEnvironment& env,
-				      char const* fileName, Boolean reuseFirstSource);
-      // called only by createNew();
+ protected:
+  ADTSAudioFileServerMediaSubsession(UsageEnvironment &env,
+                                     char const *fileName,
+                                     Boolean reuseFirstSource);
+  // called only by createNew();
   virtual ~ADTSAudioFileServerMediaSubsession();
 
-protected: // redefined virtual functions
-  virtual FramedSource* createNewStreamSource(unsigned clientSessionId,
-					      unsigned& estBitrate);
-  virtual RTPSink* createNewRTPSink(Groupsock* rtpGroupsock,
+ protected: // redefined virtual functions
+  virtual FramedSource *createNewStreamSource(unsigned clientSessionId,
+                                              unsigned &estBitrate);
+  virtual RTPSink *createNewRTPSink(Groupsock *rtpGroupsock,
                                     unsigned char rtpPayloadTypeIfDynamic,
-				    FramedSource* inputSource);
+                                    FramedSource *inputSource);
 };
 
 #endif

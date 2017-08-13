@@ -30,10 +30,11 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "DarwinInjector.hh"
 
 UsageEnvironment *env;
-char const *inputFileName = "test.m4e";
+char const *inputVideoFileName = "test.264";
+char const *inputAudioFileName = "test.aac";
 char const *remoteStreamName = "test.sdp"; // the stream name, as served by the DSS
-MPEG4VideoStreamFramer *videoSource;
-RTPSink *videoSink;
+FramedSource *videoSource, *audioSource;
+RTPSink *videoSink, *audioSink;
 
 char const *programName;
 
@@ -43,7 +44,7 @@ void usage() {
   exit(1);
 }
 
-Boolean awaitConfigInfo(RTPSink *sink); // forward
+Boolean awaitConfigInfo(RTPSink *vedioSink); // forward
 void play(); // forward
 
 int main(int argc, char **argv) {
@@ -66,9 +67,23 @@ int main(int argc, char **argv) {
   dummyDestAddress.s_addr = 0;
   Groupsock rtpGroupsockVideo(*env, dummyDestAddress, 0, 0);
   Groupsock rtcpGroupsockVideo(*env, dummyDestAddress, 0, 0);
+  Groupsock rtpGroupsockAudio(*env, dummyDestAddress, 0, 0);
+  Groupsock rtcpGroupsockAudio(*env, dummyDestAddress, 0, 0);
 
   // Create a 'MPEG-4 Video RTP' sink from the RTP 'groupsock':
-  videoSink = MPEG4ESVideoRTPSink::createNew(*env, &rtpGroupsockVideo, 96);
+//  videoSink = MPEG4ESVideoRTPSink::createNew(*env, &rtpGroupsockVideo, 96);
+  videoSink = H264VideoRTPSink::createNew(*env, &rtpGroupsockVideo, 96);
+//  audioSink = MPEG1or2AudioRTPSink::createNew(*env, &rtpGroupsockAudio);
+  ADTSAudioFileSource
+      *audioSource = ADTSAudioFileSource::createNew(*env, inputAudioFileName);
+  audioSink = MPEG4GenericRTPSink::createNew(*env, &rtpGroupsockAudio,
+                                             97,
+                                             audioSource->samplingFrequency(),
+                                             "audio",
+                                             "AAC-hbr",
+                                             audioSource->configStr(),
+                                             audioSource->numChannels());
+  Medium::close(audioSource);
 
   // HACK, specifically for MPEG-4 video:
   // Before we can use this RTP sink, we need its MPEG-4 'config' information (for
@@ -87,7 +102,10 @@ int main(int argc, char **argv) {
   }
 
   // Create (and start) a 'RTCP instance' for this RTP sink:
-  const unsigned estimatedSessionBandwidthVideo = 500; // in kbps; for RTCP b/w share
+  const unsigned
+      estimatedSessionBandwidthVideo = 500; // in kbps; for RTCP b/w share
+  const unsigned
+      estimatedSessionBandwidthAudio = 160; // in kbps; for RTCP b/w share
   const unsigned maxCNAMElen = 100;
   unsigned char CNAME[maxCNAMElen + 1];
   gethostname((char *) CNAME, maxCNAMElen);
@@ -96,10 +114,16 @@ int main(int argc, char **argv) {
       RTCPInstance::createNew(*env, &rtcpGroupsockVideo,
                               estimatedSessionBandwidthVideo, CNAME,
                               videoSink, NULL /* we're a server */);
+  RTCPInstance *audioRTCP =
+      RTCPInstance::createNew(*env, &rtcpGroupsockAudio,
+                              estimatedSessionBandwidthAudio, CNAME,
+                              audioSink, NULL /* we're a server */);
   // Note: This starts RTCP running automatically
 
   // Add these to our 'Darwin injector':
   injector->addStream(videoSink, videoRTCP);
+  injector->addStream(audioSink, audioRTCP);
+
 
   // Next, specify the destination Darwin Streaming Server:
   if (!injector->setDestination(dssNameOrAddress,
@@ -125,8 +149,21 @@ int main(int argc, char **argv) {
 }
 
 void afterPlaying(void *clientData) {
+  // One of the sinks has ended playing.
+  // Check whether any of the sources have a pending read.  If so,
+  // wait until its sink ends playing also:
+  if (audioSource->isCurrentlyAwaitingData()
+      || videoSource->isCurrentlyAwaitingData())
+    return;
+
+  // Now that both sinks have ended, close both input sources,
+  // and start playing again:
   *env << "...done reading from file\n";
 
+  audioSink->stopPlaying();
+  videoSink->stopPlaying();
+  // ensures that both are shut down
+  Medium::close(audioSource);
   Medium::close(videoSource);
   // Note: This also closes the input file that this source read from.
 
@@ -136,22 +173,31 @@ void afterPlaying(void *clientData) {
 
 void play() {
   // Open the input file as a 'byte-stream file source':
-  ByteStreamFileSource *fileSource
-      = ByteStreamFileSource::createNew(*env, inputFileName);
-  if (fileSource == NULL) {
-    *env << "Unable to open file \"" << inputFileName
+  ByteStreamFileSource *videoFileSource
+      = ByteStreamFileSource::createNew(*env, inputVideoFileName);
+  if (videoFileSource == NULL) {
+    *env << "Unable to open file \"" << inputVideoFileName
          << "\" as a byte-stream file source\n";
     exit(1);
   }
+//  ByteStreamFileSource *audioFileSource
+//      = ByteStreamFileSource::createNew(*env, inputAudioFileName);
 
-  FramedSource *videoES = fileSource;
+  FramedSource *videoES = videoFileSource;
+//  FramedSource *audioES = audioFileSource;
 
   // Create a framer for the Video Elementary Stream:
-  FramedSource *videoSource = MPEG4VideoStreamFramer::createNew(*env, videoES);
+//  videoSource = MPEG4VideoStreamFramer::createNew(*env, videoES);
+  videoSource = H264VideoStreamFramer::createNew(*env, videoES);
+
+//  audioSource = MPEG1or2AudioStreamFramer::createNew(*env, audioES);
+//  audioSource = MP3FileSource::createNew(*env, inputAudioFileName);
+  audioSource = ADTSAudioFileSource::createNew(*env, inputAudioFileName);
 
   // Finally, start playing:
   *env << "Beginning to read from file...\n";
   videoSink->startPlaying(*videoSource, afterPlaying, videoSink);
+  audioSink->startPlaying(*audioSource, afterPlaying, audioSink);
 }
 
 static char doneFlag = 0;
@@ -170,12 +216,12 @@ static void checkForAuxSDPLine(void *clientData) {
   }
 }
 
-Boolean awaitConfigInfo(RTPSink *sink) {
+Boolean awaitConfigInfo(RTPSink *vedioSink) {
   // Check whether the sink's 'auxSDPLine()' is ready:
-  checkForAuxSDPLine(sink);
+  checkForAuxSDPLine(vedioSink);
 
   env->taskScheduler().doEventLoop(&doneFlag);
 
-  char const *auxSDPLine = sink->auxSDPLine();
-  return auxSDPLine != NULL;
+  char const *vedioAuxSDPLine = vedioSink->auxSDPLine();
+  return vedioAuxSDPLine != NULL;
 }

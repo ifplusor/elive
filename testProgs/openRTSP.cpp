@@ -23,46 +23,80 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 
 #include "playCommon.hh"
 
-RTSPClient* ourRTSPClient = NULL;
-Medium* createClient(UsageEnvironment& env, char const* url, int verbosityLevel, char const* applicationName) {
+RTSPClient *ourRTSPClient = NULL;
+Medium *createClient(UsageEnvironment &env,
+                     char const *url,
+                     int verbosityLevel,
+                     char const *applicationName) {
   extern portNumBits tunnelOverHTTPPortNum;
-  return ourRTSPClient = RTSPClient::createNew(env, url, verbosityLevel, applicationName, tunnelOverHTTPPortNum);
+  return ourRTSPClient = RTSPClient::createNew(env,
+                                               url,
+                                               verbosityLevel,
+                                               applicationName,
+                                               tunnelOverHTTPPortNum);
 }
 
-void assignClient(Medium* client) {
-  ourRTSPClient = (RTSPClient*)client;
+void assignClient(Medium *client) {
+  ourRTSPClient = (RTSPClient *) client;
 }
 
-void getOptions(RTSPClient::responseHandler* afterFunc) { 
+void getOptions(RTSPClient::responseHandler *afterFunc) {
   ourRTSPClient->sendOptionsCommand(afterFunc, ourAuthenticator);
 }
 
-void getSDPDescription(RTSPClient::responseHandler* afterFunc) {
+void getSDPDescription(RTSPClient::responseHandler *afterFunc) {
   ourRTSPClient->sendDescribeCommand(afterFunc, ourAuthenticator);
 }
 
-void setupSubsession(MediaSubsession* subsession, Boolean streamUsingTCP, Boolean forceMulticastOnUnspecified, RTSPClient::responseHandler* afterFunc) {
-  
-  ourRTSPClient->sendSetupCommand(*subsession, afterFunc, False, streamUsingTCP, forceMulticastOnUnspecified, ourAuthenticator);
+void setupSubsession(MediaSubsession *subsession,
+                     Boolean streamUsingTCP,
+                     Boolean forceMulticastOnUnspecified,
+                     RTSPClient::responseHandler *afterFunc) {
+
+  ourRTSPClient->sendSetupCommand(*subsession,
+                                  afterFunc,
+                                  False,
+                                  streamUsingTCP,
+                                  forceMulticastOnUnspecified,
+                                  ourAuthenticator);
 }
 
-void startPlayingSession(MediaSession* session, double start, double end, float scale, RTSPClient::responseHandler* afterFunc) {
-  ourRTSPClient->sendPlayCommand(*session, afterFunc, start, end, scale, ourAuthenticator);
+void startPlayingSession(MediaSession *session,
+                         double start,
+                         double end,
+                         float scale,
+                         RTSPClient::responseHandler *afterFunc) {
+  ourRTSPClient->sendPlayCommand(*session,
+                                 afterFunc,
+                                 start,
+                                 end,
+                                 scale,
+                                 ourAuthenticator);
 }
 
-void startPlayingSession(MediaSession* session, char const* absStartTime, char const* absEndTime, float scale, RTSPClient::responseHandler* afterFunc) {
-  ourRTSPClient->sendPlayCommand(*session, afterFunc, absStartTime, absEndTime, scale, ourAuthenticator);
+void startPlayingSession(MediaSession *session,
+                         char const *absStartTime,
+                         char const *absEndTime,
+                         float scale,
+                         RTSPClient::responseHandler *afterFunc) {
+  ourRTSPClient->sendPlayCommand(*session,
+                                 afterFunc,
+                                 absStartTime,
+                                 absEndTime,
+                                 scale,
+                                 ourAuthenticator);
 }
 
-void tearDownSession(MediaSession* session, RTSPClient::responseHandler* afterFunc) {
+void tearDownSession(MediaSession *session,
+                     RTSPClient::responseHandler *afterFunc) {
   ourRTSPClient->sendTeardownCommand(*session, afterFunc, ourAuthenticator);
 }
 
-void setUserAgentString(char const* userAgentString) {
+void setUserAgentString(char const *userAgentString) {
   ourRTSPClient->setUserAgentString(userAgentString);
 }
 
 Boolean allowProxyServers = False;
 Boolean controlConnectionUsesTCP = True;
 Boolean supportCodecSelection = False;
-char const* clientProtocolName = "RTSP";
+char const *clientProtocolName = "RTSP";

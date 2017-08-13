@@ -52,53 +52,55 @@ To use a "DarwinInjector":
 
 class SubstreamDescriptor; // forward
 
-class DarwinInjector: public Medium {
-public:
-  static DarwinInjector* createNew(UsageEnvironment& env,
-				   char const* applicationName = "DarwinInjector",
-				   int verbosityLevel = 0);
+class DarwinInjector : public Medium {
+ public:
+  static DarwinInjector *createNew(UsageEnvironment &env,
+                                   char const *applicationName = "DarwinInjector",
+                                   int verbosityLevel = 0);
 
-  static Boolean lookupByName(UsageEnvironment& env, char const* name,
-			      DarwinInjector*& result);
+  static Boolean lookupByName(UsageEnvironment &env, char const *name,
+                              DarwinInjector *&result);
 
-  void addStream(RTPSink* rtpSink, RTCPInstance* rtcpInstance);
+  void addStream(RTPSink *rtpSink, RTCPInstance *rtcpInstance);
 
-  Boolean setDestination(char const* remoteRTSPServerNameOrAddress,
-			 char const* remoteFileName,
-			 char const* sessionName = "",
-			 char const* sessionInfo = "",
-			 portNumBits remoteRTSPServerPortNumber = 554,
-			 char const* remoteUserName = "",
-			 char const* remotePassword = "",
-			 char const* sessionAuthor = "",
-			 char const* sessionCopyright = "",
-			 int timeout = -1);
+  Boolean setDestination(char const *remoteRTSPServerNameOrAddress,
+                         char const *remoteFileName,
+                         char const *sessionName = "",
+                         char const *sessionInfo = "",
+                         portNumBits remoteRTSPServerPortNumber = 554,
+                         char const *remoteUserName = "",
+                         char const *remotePassword = "",
+                         char const *sessionAuthor = "",
+                         char const *sessionCopyright = "",
+                         int timeout = -1);
 
-private: // redefined virtual functions
+ private: // redefined virtual functions
   virtual Boolean isDarwinInjector() const;
 
-private:
-  DarwinInjector(UsageEnvironment& env,
-		 char const* applicationName, int verbosityLevel);
-      // called only by createNew()
+ private:
+  DarwinInjector(UsageEnvironment &env,
+                 char const *applicationName, int verbosityLevel);
+  // called only by createNew()
 
   virtual ~DarwinInjector();
 
-  static void genericResponseHandler(RTSPClient* rtspClient, int responseCode, char* responseString);
-  void genericResponseHandler1(int responseCode, char* responseString);
+  static void genericResponseHandler(RTSPClient *rtspClient,
+                                     int responseCode,
+                                     char *responseString);
+  void genericResponseHandler1(int responseCode, char *responseString);
 
-private:
-  char const* fApplicationName;
+ private:
+  char const *fApplicationName;
   int fVerbosityLevel;
-  RTSPClient* fRTSPClient;
+  RTSPClient *fRTSPClient;
   unsigned fSubstreamSDPSizes;
-  SubstreamDescriptor* fHeadSubstream;
-  SubstreamDescriptor* fTailSubstream;
-  MediaSession* fSession;
+  SubstreamDescriptor *fHeadSubstream;
+  SubstreamDescriptor *fTailSubstream;
+  MediaSession *fSession;
   unsigned fLastTrackId;
   char fWatchVariable;
   int fResultCode;
-  char* fResultString;
+  char *fResultString;
 };
 
 #endif
