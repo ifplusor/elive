@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8)
-project(live)
+project(elive)
 
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
