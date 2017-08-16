@@ -5,5 +5,5 @@ cmake_minimum_required(VERSION 2.8)
 add_executable(live555MediaServer
 		live555MediaServer.cpp DynamicRTSPServer.cpp)
 target_link_libraries(live555MediaServer PRIVATE
-		groupsock liveMedia BasicUsageEnvironment UsageEnvironment)
+		liveMedia groupsock BasicUsageEnvironment UsageEnvironment)
 

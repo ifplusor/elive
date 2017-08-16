@@ -1,4 +1,4 @@
-link_libraries(groupsock liveMedia BasicUsageEnvironment UsageEnvironment)
+link_libraries(liveMedia groupsock BasicUsageEnvironment UsageEnvironment)
 
 add_executable(openRTSP.cpp
         playCommon.hh playCommon.cpp openRTSP.cpp)
