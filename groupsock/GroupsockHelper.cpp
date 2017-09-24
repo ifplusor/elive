@@ -202,10 +202,15 @@ Boolean makeSocketBlocking(int sock, unsigned writeTimeoutInMilliseconds) {
 
   if (writeTimeoutInMilliseconds > 0) {
 #ifdef SO_SNDTIMEO
+#if defined(__WIN32__) || defined(_WIN32)
+    DWORD msto = (DWORD)writeTimeoutInMilliseconds;
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&msto, sizeof(msto) );
+#else
     struct timeval tv;
     tv.tv_sec = writeTimeoutInMilliseconds/1000;
     tv.tv_usec = (writeTimeoutInMilliseconds%1000)*1000;
     setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof tv);
+#endif
 #endif
   }
 
@@ -214,17 +219,21 @@ Boolean makeSocketBlocking(int sock, unsigned writeTimeoutInMilliseconds) {
 
 int setupStreamSocket(UsageEnvironment& env,
                       Port port, Boolean makeNonBlocking) {
+
+  // winsock使用前初始化
   if (!initializeWinsockIfNecessary()) {
     socketErr(env, "Failed to initialize 'winsock': ");
     return -1;
   }
 
+  // 创建IPv4 Socket
   int newSocket = createSocket(SOCK_STREAM);
   if (newSocket < 0) {
     socketErr(env, "unable to create stream socket: ");
     return newSocket;
   }
 
+  // SO_REUSEADDR
   int reuseFlag = groupsockPriv(env)->reuseFlag;
   reclaimGroupsockPriv(env);
   if (setsockopt(newSocket, SOL_SOCKET, SO_REUSEADDR,
@@ -242,6 +251,7 @@ int setupStreamSocket(UsageEnvironment& env,
   // Windoze doesn't properly handle SO_REUSEPORT
 #else
 #ifdef SO_REUSEPORT
+  // SO_REUSEADDR
   if (setsockopt(newSocket, SOL_SOCKET, SO_REUSEPORT,
 		 (const char*)&reuseFlag, sizeof reuseFlag) < 0) {
     socketErr(env, "setsockopt(SO_REUSEPORT) error: ");
@@ -257,6 +267,7 @@ int setupStreamSocket(UsageEnvironment& env,
 #else
   if (port.num() != 0 || ReceivingInterfaceAddr != INADDR_ANY) {
 #endif
+  // 如已制定Port或Addr，则需显式bind()至创建的socket
     MAKE_SOCKADDR_IN(name, ReceivingInterfaceAddr, port.num());
     if (bind(newSocket, (struct sockaddr*)&name, sizeof name) != 0) {
       char tmpBuffer[100];
@@ -271,6 +282,7 @@ int setupStreamSocket(UsageEnvironment& env,
   }
 #endif
 
+  // non-blocking
   if (makeNonBlocking) {
     if (!makeSocketNonBlocking(newSocket)) {
       socketErr(env, "failed to make non-blocking: ");

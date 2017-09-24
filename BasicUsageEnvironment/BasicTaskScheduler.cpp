@@ -68,6 +68,8 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
   fd_set writeSet = fWriteSet; // ditto
   fd_set exceptionSet = fExceptionSet; // ditto
 
+  // 1.根据定时器任务列表中，距当前时间最近的任务所需执行的时间点以及传入的
+  //   最大延迟时间，计算 select() 所能够等待地最长时间。
   DelayInterval const& timeToDelay = fDelayQueue.timeToNextAlarm();
   struct timeval tv_timeToDelay;
   tv_timeToDelay.tv_sec = timeToDelay.seconds();
@@ -87,8 +89,9 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     tv_timeToDelay.tv_usec = maxDelayTime%MILLION;
   }
 
-  // 1.调用select检查fReadSet、fWriteSet和fExceptionSet看是否有满足条件添加的socket。然后遍历HandlerSet检查每个
-  //   socket的状态，如果状态得到满足即说明在该socket上发生了对应的事件，然后调用与该socket对应的处理函数。
+  // 2.调用select检查fReadSet、fWriteSet和fExceptionSet看是否有满足条件添加的
+  //   socket。然后遍历HandlerSet检查每个 socket的状态，如果状态得到满足即说明
+  //   在该socket上发生了对应的事件，然后调用与该socket对应的处理函数。
   int selectResult = select(fMaxNumSockets, &readSet, &writeSet, &exceptionSet, &tv_timeToDelay);
   if (selectResult < 0) {
 #if defined(__WIN32__) || defined(_WIN32)
@@ -177,7 +180,7 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     if (handler == NULL) fLastHandledSocketNum = -1;//because we didn't call a handler
   }
 
-  // 2. 检查事件任务数组是否存在可用项，如存在则调用对应处理函数。
+  // 3.检查事件任务数组是否存在可用项，如存在则调用对应处理函数。
   // Also handle any newly-triggered event (Note that we do this *after* calling a socket handler,
   // in case the triggered event handler modifies The set of readable sockets.)
   if (fTriggersAwaitingHandling != 0) {
@@ -211,7 +214,8 @@ void BasicTaskScheduler::SingleStep(unsigned maxDelayTime) {
     }
   }
 
-  // 3. 检查延时队列，看是否存在剩余时间为0的项，如找到则执行对应处理函数，然后将该项删除。
+  // 4.检查延时队列，看是否存在剩余时间为0的项，如找到则执行对应处理函数，然后
+  //   将该项删除。
   // Also handle any delayed event that may have come due.
   fDelayQueue.handleAlarm();
 }

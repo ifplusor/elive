@@ -95,8 +95,10 @@ GenericMediaServer
     fServerMediaSessions(HashTable::create(STRING_HASH_KEYS)),
     fClientConnections(HashTable::create(ONE_WORD_HASH_KEYS)),
     fClientSessions(HashTable::create(STRING_HASH_KEYS)) {
+  // ignore SIGPIPE信号
   ignoreSigPipeOnSocket(fServerSocket); // so that clients on the same host that are killed don't also kill us
-  
+
+  // 铺设服务-incomingConnectionHandler
   // Arrange to handle connections from others:
   env.taskScheduler().turnOnBackgroundReadHandling(fServerSocket, incomingConnectionHandler, this);
 }
@@ -148,7 +150,8 @@ int GenericMediaServer::setUpOurSocket(UsageEnvironment& env, Port& ourPort) {
     // ALLOW_RTSP_SERVER_PORT_REUSE is for backwards-compatibility #####
     NoReuse dummy(env); // Don't use this socket if there's already a local server using it
 #endif
-    
+
+    // 创建TCPSocket
     ourSocket = setupStreamSocket(env, ourPort);
     if (ourSocket < 0) break;
     
@@ -168,7 +171,8 @@ int GenericMediaServer::setUpOurSocket(UsageEnvironment& env, Port& ourPort) {
     
     return ourSocket;
   } while (0);
-  
+
+  // 异常情况，清场退出
   if (ourSocket != -1) ::closeSocket(ourSocket);
   return -1;
 }
@@ -182,6 +186,7 @@ void GenericMediaServer::incomingConnectionHandler() {
 }
 
 void GenericMediaServer::incomingConnectionHandlerOnSocket(int serverSocket) {
+  // socket accept
   struct sockaddr_in clientAddr;
   SOCKLEN_T clientAddrLen = sizeof clientAddr;
   int clientSocket = accept(serverSocket, (struct sockaddr*)&clientAddr, &clientAddrLen);
@@ -192,6 +197,8 @@ void GenericMediaServer::incomingConnectionHandlerOnSocket(int serverSocket) {
     }
     return;
   }
+
+  // socket revise
   ignoreSigPipeOnSocket(clientSocket); // so that clients on the same host that are killed don't also kill us
   makeSocketNonBlocking(clientSocket);
   increaseSendBufferTo(envir(), clientSocket, 50*1024);
@@ -241,7 +248,7 @@ void GenericMediaServer::ClientConnection::incomingRequestHandler(void* instance
 
 void GenericMediaServer::ClientConnection::incomingRequestHandler() {
   struct sockaddr_in dummy; // 'from' address, meaningless in this case
-  
+
   int bytesRead = readSocket(envir(), fOurSocket, &fRequestBuffer[fRequestBytesAlreadySeen], fRequestBufferBytesLeft, dummy);
   handleRequestBytes(bytesRead);
 }
@@ -287,8 +294,10 @@ void GenericMediaServer::ClientSession::noteLiveness() {
   fprintf(stderr, "Client session (id \"%08X\", stream name \"%s\"): Liveness indication\n",
 	  fOurSessionId, streamName);
 #endif
+  // 使用默认实现，无其他操作，属虚张声势
   if (fOurServerMediaSession != NULL) fOurServerMediaSession->noteLiveness();
 
+  // fReclamationSeconds>0时开启延时任务livenessTimeoutTask，延时时长为fReclamationSeconds
   if (fOurServer.fReclamationSeconds > 0) {
     envir().taskScheduler().rescheduleDelayedTask(fLivenessCheckTask,
 						  fOurServer.fReclamationSeconds*1000000,
