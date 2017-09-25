@@ -113,8 +113,8 @@ void OnDemandServerMediaSubsession
   } else {
     // Normal case: Create a new media source:
     unsigned streamBitrate;
-    FramedSource *mediaSource
-        = createNewStreamSource(clientSessionId, streamBitrate);
+    FramedSource *mediaSource =
+        createNewStreamSource(clientSessionId, streamBitrate);
 
     // Create 'groupsock' and 'sink' objects for the destination,
     // using previously unused server port numbers:
@@ -123,13 +123,11 @@ void OnDemandServerMediaSubsession
     Groupsock *rtpGroupsock = NULL;
     Groupsock *rtcpGroupsock = NULL;
 
-    if (clientRTPPort.num() != 0
-        || tcpSocketNum >= 0) { // Normal case: Create destinations
+    if (clientRTPPort.num() != 0 || tcpSocketNum >= 0) { // Normal case: Create destinations
       portNumBits serverPortNum;
       if (clientRTCPPort.num() == 0) {
         // We're streaming raw UDP (not RTP). Create a single groupsock:
-        NoReuse dummy
-            (envir()); // ensures that we skip over ports that are already in use
+        NoReuse dummy(envir()); // ensures that we skip over ports that are already in use
         for (serverPortNum = fInitialPortNum;; ++serverPortNum) {
           struct in_addr dummyAddr;
           dummyAddr.s_addr = 0;
@@ -144,8 +142,7 @@ void OnDemandServerMediaSubsession
         // Normal case: We're streaming RTP (over UDP or TCP).  Create a pair of
         // groupsocks (RTP and RTCP), with adjacent port numbers (RTP port number even).
         // (If we're multiplexing RTCP and RTP over the same port number, it can be odd or even.)
-        NoReuse dummy
-            (envir()); // ensures that we skip over ports that are already in use
+        NoReuse dummy(envir()); // ensures that we skip over ports that are already in use
         for (portNumBits serverPortNum = fInitialPortNum;; ++serverPortNum) {
           struct in_addr dummyAddr;
           dummyAddr.s_addr = 0;
@@ -189,16 +186,14 @@ void OnDemandServerMediaSubsession
       if (rtpGroupsock != NULL) {
         // Try to use a big send buffer for RTP -  at least 0.1 second of
         // specified bandwidth and at least 50 KB
-        unsigned
-            rtpBufSize = streamBitrate * 25 / 2; // 1 kbps * 0.1 s = 12.5 bytes
+        unsigned rtpBufSize = streamBitrate * 25 / 2; // 1 kbps * 0.1 s = 12.5 bytes
         if (rtpBufSize < 50 * 1024) rtpBufSize = 50 * 1024;
         increaseSendBufferTo(envir(), rtpGroupsock->socketNum(), rtpBufSize);
       }
     }
 
     // Set up the state of the stream.  The stream will get started later:
-    streamToken = fLastStreamToken
-        =
+    streamToken = fLastStreamToken =
         new StreamState(*this, serverRTPPort, serverRTCPPort, rtpSink, udpSink,
                         streamBitrate, mediaSource,
                         rtpGroupsock, rtcpGroupsock);
@@ -215,18 +210,18 @@ void OnDemandServerMediaSubsession
   fDestinationsHashTable->Add((char const *) clientSessionId, destinations);
 }
 
-void OnDemandServerMediaSubsession::startStream(unsigned clientSessionId,
-                                                void *streamToken,
-                                                TaskFunc *rtcpRRHandler,
-                                                void *rtcpRRHandlerClientData,
-                                                unsigned short &rtpSeqNum,
-                                                unsigned &rtpTimestamp,
-                                                ServerRequestAlternativeByteHandler *serverRequestAlternativeByteHandler,
-                                                void *serverRequestAlternativeByteHandlerClientData) {
+void OnDemandServerMediaSubsession
+::startStream(unsigned clientSessionId,
+              void *streamToken,
+              TaskFunc *rtcpRRHandler,
+              void *rtcpRRHandlerClientData,
+              unsigned short &rtpSeqNum,
+              unsigned &rtpTimestamp,
+              ServerRequestAlternativeByteHandler *serverRequestAlternativeByteHandler,
+              void *serverRequestAlternativeByteHandlerClientData) {
   StreamState *streamState = (StreamState *) streamToken;
-  Destinations *destinations
-      =
-      (Destinations *) (fDestinationsHashTable->Lookup((char const *) clientSessionId));
+  Destinations *destinations = (Destinations *)
+      (fDestinationsHashTable->Lookup((char const *) clientSessionId));
   if (streamState != NULL) {
     streamState->startPlaying(destinations,
                               clientSessionId,

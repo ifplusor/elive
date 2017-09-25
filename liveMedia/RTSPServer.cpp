@@ -1856,13 +1856,10 @@ void RTSPServer::RTSPClientSession
   char *absStart = NULL;
   char *absEnd = NULL;
   Boolean startTimeIsNow;
-  Boolean sawRangeHeader
-      = parseRangeHeader(fullRequestStr,
-                         rangeStart,
-                         rangeEnd,
-                         absStart,
-                         absEnd,
-                         startTimeIsNow);
+  Boolean sawRangeHeader = parseRangeHeader(fullRequestStr,
+                                            rangeStart, rangeEnd,
+                                            absStart, absEnd,
+                                            startTimeIsNow);
 
   if (sawRangeHeader && absStart == NULL/*not seeking by 'absolute' time*/) {
     // Use this information, plus the stream's duration (if known), to create our own "Range:" header, for the response:
@@ -1999,14 +1996,15 @@ void RTSPServer::RTSPClientSession
       unsigned short rtpSeqNum = 0;
       unsigned rtpTimestamp = 0;
       if (fStreamStates[i].subsession == NULL) continue;
-      fStreamStates[i].subsession->startStream(fOurSessionId,
-                                               fStreamStates[i].streamToken,
-                                               (TaskFunc *) noteClientLiveness,
-                                               this,
-                                               rtpSeqNum,
-                                               rtpTimestamp,
-                                               RTSPServer::RTSPClientConnection::handleAlternativeRequestByte,
-                                               ourClientConnection);
+      fStreamStates[i].subsession->startStream(
+          fOurSessionId,
+          fStreamStates[i].streamToken,
+          (TaskFunc *) noteClientLiveness,
+          this,
+          rtpSeqNum,
+          rtpTimestamp,
+          RTSPServer::RTSPClientConnection::handleAlternativeRequestByte,
+          ourClientConnection);
       const char *urlSuffix = fStreamStates[i].subsession->trackId();
       char *prevRTPInfo = rtpInfo;
       unsigned rtpInfoSize = rtpInfoFmtSize
