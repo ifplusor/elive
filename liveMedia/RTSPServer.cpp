@@ -1389,11 +1389,14 @@ void RTSPServer::RTSPClientSession
                   char const *urlPreSuffix,
                   char const *urlSuffix,
                   char const *fullRequestStr) {
-  // Normally, "urlPreSuffix" should be the session (stream) name, and "urlSuffix" should be the subsession (track) name.
-  // However (being "liberal in what we accept"), we also handle 'aggregate' SETUP requests (i.e., without a track name),
-  // in the special case where we have only a single track.  I.e., in this case, we also handle:
+  // Normally, "urlPreSuffix" should be the session (stream) name, and
+  // "urlSuffix" should be the subsession (track) name.
+  // However (being "liberal in what we accept"), we also handle 'aggregate'
+  // SETUP requests (i.e., without a track name), in the special case where
+  // we have only a single track.  I.e., in this case, we also handle:
   //    "urlPreSuffix" is empty and "urlSuffix" is the session (stream) name, or
-  //    "urlPreSuffix" concatenated with "urlSuffix" (with "/" inbetween) is the session (stream) name.
+  //    "urlPreSuffix" concatenated with "urlSuffix" (with "/" inbetween) is
+  //    the session (stream) name.
   char const *streamName = urlPreSuffix; // in the normal case
   char const *trackId = urlSuffix; // in the normal case
   char *concatenatedStreamName = NULL; // in the normal case
@@ -1421,10 +1424,12 @@ void RTSPServer::RTSPClientSession
     }
     if (sms == NULL) {
       if (fOurServerMediaSession == NULL) {
-        // The client asked for a stream that doesn't exist (and this session descriptor has not been used before):
+        // The client asked for a stream that doesn't exist (and this session
+        // descriptor has not been used before):
         ourClientConnection->handleCmd_notFound();
       } else {
-        // The client asked for a stream that doesn't exist, but using a stream id for a stream that does exist. Bad request:
+        // The client asked for a stream that doesn't exist, but using a
+        // stream id for a stream that does exist. Bad request:
         ourClientConnection->handleCmd_bad();
       }
       break;
@@ -1434,14 +1439,16 @@ void RTSPServer::RTSPClientSession
         fOurServerMediaSession = sms;
         fOurServerMediaSession->incrementReferenceCount();
       } else if (sms != fOurServerMediaSession) {
-        // The client asked for a stream that's different from the one originally requested for this stream id.  Bad request:
+        // The client asked for a stream that's different from the one
+        // originally requested for this stream id.  Bad request:
         ourClientConnection->handleCmd_bad();
         break;
       }
     }
 
     if (fStreamStates == NULL) {
-      // This is the first "SETUP" for this session.  Set up our array of states for all of this session's subsessions (tracks):
+      // This is the first "SETUP" for this session.  Set up our array of
+      // states for all of this session's subsessions (tracks):
       fNumStreamStates = fOurServerMediaSession->numSubsessions();
       fStreamStates = new struct streamState[fNumStreamStates];
 
@@ -1580,19 +1587,20 @@ void RTSPServer::RTSPClientSession
     ReceivingInterfaceAddr = SendingInterfaceAddr = sourceAddr.sin_addr.s_addr;
 #endif
 
-    subsession->getStreamParameters(fOurSessionId,
-                                    ourClientConnection->fClientAddr.sin_addr.s_addr,
-                                    clientRTPPort,
-                                    clientRTCPPort,
-                                    fStreamStates[trackNum].tcpSocketNum,
-                                    rtpChannelId,
-                                    rtcpChannelId,
-                                    destinationAddress,
-                                    destinationTTL,
-                                    fIsMulticast,
-                                    serverRTPPort,
-                                    serverRTCPPort,
-                                    fStreamStates[trackNum].streamToken);
+    subsession
+        ->getStreamParameters(fOurSessionId,
+                              ourClientConnection->fClientAddr.sin_addr.s_addr,
+                              clientRTPPort,
+                              clientRTCPPort,
+                              fStreamStates[trackNum].tcpSocketNum,
+                              rtpChannelId,
+                              rtcpChannelId,
+                              destinationAddress,
+                              destinationTTL,
+                              fIsMulticast,
+                              serverRTPPort,
+                              serverRTCPPort,
+                              fStreamStates[trackNum].streamToken);
     SendingInterfaceAddr = origSendingInterfaceAddr;
     ReceivingInterfaceAddr = origReceivingInterfaceAddr;
 

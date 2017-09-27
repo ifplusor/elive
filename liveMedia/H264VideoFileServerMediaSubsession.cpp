@@ -24,15 +24,17 @@ along with this library; if not, write to the Free Software Foundation, Inc.,
 #include "ByteStreamFileSource.hh"
 #include "H264VideoStreamFramer.hh"
 
-H264VideoFileServerMediaSubsession*
-H264VideoFileServerMediaSubsession::createNew(UsageEnvironment& env,
-					      char const* fileName,
-					      Boolean reuseFirstSource) {
+H264VideoFileServerMediaSubsession *H264VideoFileServerMediaSubsession
+::createNew(UsageEnvironment& env,
+            char const* fileName,
+            Boolean reuseFirstSource) {
   return new H264VideoFileServerMediaSubsession(env, fileName, reuseFirstSource);
 }
 
-H264VideoFileServerMediaSubsession::H264VideoFileServerMediaSubsession(UsageEnvironment& env,
-								       char const* fileName, Boolean reuseFirstSource)
+H264VideoFileServerMediaSubsession
+::H264VideoFileServerMediaSubsession(UsageEnvironment& env,
+                                     char const* fileName,
+                                     Boolean reuseFirstSource)
   : FileServerMediaSubsession(env, fileName, reuseFirstSource),
     fAuxSDPLine(NULL), fDoneFlag(0), fDummyRTPSink(NULL) {
 }

@@ -70,8 +70,10 @@ Boolean OutputSocket::write(netAddressBits address, portNumBits portNum, u_int8_
 
 // By default, we don't do reads:
 Boolean OutputSocket
-::handleRead(unsigned char* /*buffer*/, unsigned /*bufferMaxSize*/,
-	     unsigned& /*bytesRead*/, struct sockaddr_in& /*fromAddressAndPort*/) {
+::handleRead(unsigned char* /*buffer*/,
+             unsigned /*bufferMaxSize*/,
+             unsigned& /*bytesRead*/,
+             struct sockaddr_in& /*fromAddressAndPort*/) {
   return True;
 }
 
@@ -79,8 +81,8 @@ Boolean OutputSocket
 ///////// destRecord //////////
 
 destRecord
-::destRecord(struct in_addr const& addr, Port const& port, u_int8_t ttl, unsigned sessionId,
-	     destRecord* next)
+::destRecord(struct in_addr const& addr, Port const& port, u_int8_t ttl,
+             unsigned sessionId, destRecord* next)
   : fNext(next), fGroupEId(addr, port.num(), ttl), fSessionId(sessionId) {
 }
 
@@ -165,28 +167,37 @@ Groupsock::~Groupsock() {
 }
 
 destRecord* Groupsock
-::createNewDestRecord(struct in_addr const& addr, Port const& port, u_int8_t ttl,
-		      unsigned sessionId, destRecord* next) {
+::createNewDestRecord(struct in_addr const &addr,
+                      Port const &port,
+                      u_int8_t ttl,
+                      unsigned sessionId,
+                      destRecord *next) {
   // Default implementation:
   return new destRecord(addr, port, ttl, sessionId, next);
 }
 
-void
-Groupsock::changeDestinationParameters(struct in_addr const& newDestAddr,
-				       Port newDestPort, int newDestTTL, unsigned sessionId) {
-  destRecord* dest;
-  for (dest = fDests; dest != NULL && dest->fSessionId != sessionId; dest = dest->fNext) {}
+void Groupsock::
+changeDestinationParameters(struct in_addr const &newDestAddr,
+                            Port newDestPort,
+                            int newDestTTL,
+                            unsigned sessionId) {
+  destRecord *dest;
+  for (dest = fDests;
+       dest != NULL && dest->fSessionId != sessionId;
+       dest = dest->fNext) {}
 
   if (dest == NULL) { // There's no existing 'destRecord' for this "sessionId"; add a new one:
-    fDests = createNewDestRecord(newDestAddr, newDestPort, newDestTTL, sessionId, fDests);
+    fDests = createNewDestRecord(newDestAddr, newDestPort, newDestTTL,
+                                 sessionId, fDests);
     return;
   }
 
-  // "dest" is an existing 'destRecord' for this "sessionId"; change its values to the new ones:
+  // "dest" is an existing 'destRecord' for this "sessionId";
+  // change its values to the new ones:
   struct in_addr destAddr = dest->fGroupEId.groupAddress();
   if (newDestAddr.s_addr != 0) {
     if (newDestAddr.s_addr != destAddr.s_addr
-	&& IsMulticastAddress(newDestAddr.s_addr)) {
+        && IsMulticastAddress(newDestAddr.s_addr)) {
       // If the new destination is a multicast address, then we assume that
       // we want to join it also.  (If this is not in fact the case, then
       // call "multicastSendOnly()" afterwards.)
@@ -199,7 +210,7 @@ Groupsock::changeDestinationParameters(struct in_addr const& newDestAddr,
   portNumBits destPortNum = dest->fGroupEId.portNum();
   if (newDestPort.num() != 0) {
     if (newDestPort.num() != destPortNum
-	&& IsMulticastAddress(destAddr.s_addr)) {
+        && IsMulticastAddress(destAddr.s_addr)) {
       // Also bind to the new port number:
       changePort(newDestPort);
       // And rejoin the multicast group:
@@ -209,7 +220,7 @@ Groupsock::changeDestinationParameters(struct in_addr const& newDestAddr,
   }
 
   u_int8_t destTTL = ttl();
-  if (newDestTTL != ~0) destTTL = (u_int8_t)newDestTTL;
+  if (newDestTTL != ~0) destTTL = (u_int8_t) newDestTTL;
 
   dest->fGroupEId = GroupEId(destAddr, destPortNum, destTTL);
 
@@ -217,21 +228,25 @@ Groupsock::changeDestinationParameters(struct in_addr const& newDestAddr,
   removeDestinationFrom(dest->fNext, sessionId);
 }
 
-unsigned Groupsock
-::lookupSessionIdFromDestination(struct sockaddr_in const& destAddrAndPort) const {
+unsigned Groupsock::lookupSessionIdFromDestination(
+    struct sockaddr_in const& destAddrAndPort) const {
   destRecord* dest = lookupDestRecordFromDestination(destAddrAndPort);
   if (dest == NULL) return 0;
 
   return dest->fSessionId;
 }
 
-void Groupsock::addDestination(struct in_addr const& addr, Port const& port, unsigned sessionId) {
+void Groupsock
+::addDestination(struct in_addr const& addr,
+                 Port const& port,
+                 unsigned sessionId) {
   // Default implementation:
-  // If there's no existing 'destRecord' with the same "addr", "port", and "sessionId", add a new one:
+  // If there's no existing 'destRecord' with the same "addr", "port", and
+  // "sessionId", add a new one:
   for (destRecord* dest = fDests; dest != NULL; dest = dest->fNext) {
     if (sessionId == dest->fSessionId
-	&& addr.s_addr == dest->fGroupEId.groupAddress().s_addr
-	&& port.num() == dest->fGroupEId.portNum()) {
+        && addr.s_addr == dest->fGroupEId.groupAddress().s_addr
+        && port.num() == dest->fGroupEId.portNum()) {
       return;
     }
   }
@@ -249,8 +264,9 @@ void Groupsock::removeAllDestinations() {
 }
 
 void Groupsock::multicastSendOnly() {
-  // We disable this code for now, because - on some systems - leaving the multicast group seems to cause sent packets
-  // to not be received by other applications (at least, on the same host).
+  // We disable this code for now, because - on some systems - leaving the
+  // multicast group seems to cause sent packets to not be received by other
+  // applications (at least, on the same host).
 #if 0
   socketLeaveGroup(env(), socketNum(), fIncomingGroupEId.groupAddress().s_addr);
   for (destRecord* dests = fDests; dests != NULL; dests = dests->fNext) {
@@ -259,16 +275,20 @@ void Groupsock::multicastSendOnly() {
 #endif
 }
 
-Boolean Groupsock::output(UsageEnvironment& env, unsigned char* buffer, unsigned bufferSize,
-			  DirectedNetInterface* interfaceNotToFwdBackTo) {
+Boolean Groupsock::
+output(UsageEnvironment &env, unsigned char *buffer, unsigned bufferSize,
+       DirectedNetInterface *interfaceNotToFwdBackTo) {
   do {
     // First, do the datagram send, to each destination:
     Boolean writeSuccess = True;
-    for (destRecord* dests = fDests; dests != NULL; dests = dests->fNext) {
-      if (!write(dests->fGroupEId.groupAddress().s_addr, dests->fGroupEId.portNum(), dests->fGroupEId.ttl(),
-		 buffer, bufferSize)) {
-	writeSuccess = False;
-	break;
+    for (destRecord *dests = fDests; dests != NULL; dests = dests->fNext) {
+      if (!write(dests->fGroupEId.groupAddress().s_addr,
+                 dests->fGroupEId.portNum(),
+                 dests->fGroupEId.ttl(),
+                 buffer,
+                 bufferSize)) {
+        writeSuccess = False;
+        break;
       }
     }
     if (!writeSuccess) break;
@@ -279,16 +299,17 @@ Boolean Groupsock::output(UsageEnvironment& env, unsigned char* buffer, unsigned
     int numMembers = 0;
     if (!members().IsEmpty()) {
       numMembers =
-	outputToAllMembersExcept(interfaceNotToFwdBackTo,
-				 ttl(), buffer, bufferSize,
-				 ourIPAddress(env));
+          outputToAllMembersExcept(interfaceNotToFwdBackTo,
+                                   ttl(), buffer, bufferSize,
+                                   ourIPAddress(env));
       if (numMembers < 0) break;
     }
 
     if (DebugLevel >= 3) {
-      env << *this << ": wrote " << bufferSize << " bytes, ttl " << (unsigned)ttl();
+      env << *this << ": wrote " << bufferSize << " bytes, ttl "
+          << (unsigned) ttl();
       if (numMembers > 0) {
-	env << "; relayed to " << numMembers << " members";
+        env << "; relayed to " << numMembers << " members";
       }
       env << "\n";
     }
@@ -298,7 +319,7 @@ Boolean Groupsock::output(UsageEnvironment& env, unsigned char* buffer, unsigned
   if (DebugLevel >= 0) { // this is a fatal error
     UsageEnvironment::MsgString msg = strDup(env.getResultMsg());
     env.setResultMsg("Groupsock write failed: ", msg);
-    delete[] (char*)msg;
+    delete[] (char *) msg;
   }
   return False;
 }

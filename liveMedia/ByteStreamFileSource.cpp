@@ -174,8 +174,8 @@ void ByteStreamFileSource::doReadFromFile() {
   // Inform the reader that he has data:
 #ifdef READ_FROM_FILES_SYNCHRONOUSLY
   // To avoid possible infinite recursion, we need to return to the event loop to do this:
-  nextTask() = envir().taskScheduler().scheduleDelayedTask(0,
-				(TaskFunc*)FramedSource::afterGetting, this);
+  nextTask() = envir().taskScheduler()
+      .scheduleDelayedTask(0, (TaskFunc*)FramedSource::afterGetting, this);
 #else
   // Because the file read was done from the event loop, we can call the
   // 'after getting' function directly, without risk of infinite recursion:

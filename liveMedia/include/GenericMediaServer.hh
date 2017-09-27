@@ -41,7 +41,8 @@ public:
   void addServerMediaSession(ServerMediaSession* serverMediaSession);
 
   virtual ServerMediaSession*
-  lookupServerMediaSession(char const* streamName, Boolean isFirstLookupInSession = True);
+  lookupServerMediaSession(char const* streamName,
+                           Boolean isFirstLookupInSession = True);
 
   void removeServerMediaSession(ServerMediaSession* serverMediaSession);
       // Removes the "ServerMediaSession" object from our lookup table, so it will no longer be accessible by new clients.

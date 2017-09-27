@@ -29,9 +29,12 @@ class FramedFilter: public FramedSource {
 public:
   FramedSource* inputSource() const { return fInputSource; }
 
-  void reassignInputSource(FramedSource* newInputSource) { fInputSource = newInputSource; }
+  void reassignInputSource(FramedSource* newInputSource) {
+    fInputSource = newInputSource;
+  }
 
-  // Call before destruction if you want to prevent the destructor from closing the input source
+  // Call before destruction if you want to prevent the destructor from
+  // closing the input source
   void detachInputSource();
 
 protected:
